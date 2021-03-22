@@ -1,0 +1,112 @@
+#include <iostream>
+
+#include "Server.h"
+#include <event2/event.h>
+#include "Worker.h"
+#include <csignal>
+
+namespace {
+    void on_read(int fd, short event, void* arg) {
+        auto ptr = reinterpret_cast<ConnectionData*>(arg);
+        if (!ptr) {
+            return;
+        }
+        ptr->m_q.Push(std::make_unique<Connection>(fd));
+        delete ptr;
+    }
+
+    void on_connect(int fd, short event, void *arg) {
+        sockaddr_in client_addr;
+        socklen_t   len = 0;
+
+        // Accept incoming connection
+        int sock = accept(fd, reinterpret_cast<sockaddr*>(&client_addr), &len);
+        if (sock < 1) {
+            return;
+        }
+
+        auto ptr = reinterpret_cast<InAcceptConnection*>(arg);
+        if (ptr == nullptr) {
+            return;
+        }
+
+        ConnectionData* data = nullptr;
+        try {
+            data = new ConnectionData(sock, ptr->m_q);
+        } catch (std::exception& e) {
+            std::cout << e.what() << std::endl;
+            // делаем так, чтобы продолжить ивент луп, но надо подумать над закрытием всего сервера, если есть бэд аллок, то памяти gg
+            event_add(ptr->ev, nullptr);
+            return;
+        }
+
+        data->ev = event_new(ptr->base, sock, EV_READ, on_read, data);
+        if (data->ev == nullptr) {
+            std::cout << "bad allocate of event" << std::endl;
+            // возможно тоже ошибка, но будем проверять работу, вроде из одного треда это все вызывается
+            event_add(ptr->ev, nullptr);
+            return;
+        }
+        event_add(data->ev, nullptr);
+        event_add(ptr->ev, nullptr);
+    }
+
+    void sighandler(int signal, short events, void *arg)
+    {
+        event_base_loopbreak(reinterpret_cast<event_base*>(arg));
+    }
+
+    void add_sig_events(event_base* base) {
+        if (base == nullptr) {
+            return;
+        }
+        auto evint = event_new(base, SIGINT, EV_SIGNAL | EV_PERSIST, sighandler, base);
+        event_add(evint, nullptr);
+        auto evterm = event_new(base, SIGTERM, EV_SIGNAL | EV_PERSIST, sighandler, base);
+        event_add(evterm, nullptr);
+    }
+
+}
+
+void Server::run() {
+    auto base = event_base_new();
+    if (base == nullptr) {
+        std::cout << "cannot init base of event loop" << std::endl;
+        return;
+    }
+
+    auto conn_ptr = std::make_unique<InAcceptConnection>(m_sock_.GetFd(), GetQueueRef());
+
+    conn_ptr->base = base;
+    conn_ptr->ev = event_new(base, m_sock_.GetFd(), EV_READ, on_connect, conn_ptr.get());
+
+    if (conn_ptr->ev == nullptr) {
+        std::cout << "cannot allocate first event" << std::endl;
+        return;
+    }
+    add_sig_events(base);
+    event_add(conn_ptr->ev, nullptr);
+
+    RunThreads();
+    event_base_dispatch(base);
+    StopThreads();
+}
+
+void Server::RunThreads() {
+    for (size_t i = 0; i < m_max_threads; i++) {
+        std::cout << i << std::endl;
+        Worker w(GetQueueRef(), m_root);
+        workers.emplace_back(std::thread([w]() mutable {
+            w.work();
+        }));
+    }
+}
+
+void Server::StopThreads() {
+    for (size_t i = 0; i < m_max_threads; i++) {
+        m_q.Push(nullptr);
+    }
+    for (auto & w: workers) {
+        w.join();
+    }
+}

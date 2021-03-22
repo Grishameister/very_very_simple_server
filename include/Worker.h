@@ -7,7 +7,7 @@
 
 class Worker {
 public:
-    explicit Worker(SafeQueue<std::unique_ptr<Connection>>& q, const std::string& root) : m_q(q), m_root(root) {}
+    Worker(SafeQueue<std::unique_ptr<Connection>>& q, const std::string& root) : m_q(q), m_root(root) {}
 
     void work();
 

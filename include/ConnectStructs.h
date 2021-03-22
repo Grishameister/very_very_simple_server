@@ -22,24 +22,18 @@ struct ConnectionData {
     int m_fd;
 
     ConnectionData(int fd, SafeQueue<std::unique_ptr<Connection>>& q): m_fd(fd), m_q(q), ev(nullptr) {}
-    ~ConnectionData() {
+    virtual ~ConnectionData() {
         if (ev != nullptr) {
             event_free(ev);
         }
     }
 };
 
-struct InAcceptConnection {
-    SafeQueue<std::unique_ptr<Connection>>& m_q;
-    struct event* ev;
+struct InAcceptConnection: public ConnectionData {
     struct event_base* base;
-    int m_fd;
 
-    InAcceptConnection(int fd, SafeQueue<std::unique_ptr<Connection>>& q): m_fd(fd), m_q(q), ev(nullptr), base(nullptr) {}
+    InAcceptConnection(int fd, SafeQueue<std::unique_ptr<Connection>>& q): ConnectionData(fd, q), base(nullptr) {}
     ~InAcceptConnection() {
-        if (ev != nullptr) {
-            event_free(ev);
-        }
         if (base != nullptr) {
             event_base_free(base);
         }

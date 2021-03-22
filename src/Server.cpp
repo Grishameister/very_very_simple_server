@@ -19,7 +19,6 @@ namespace {
         sockaddr_in client_addr;
         socklen_t   len = 0;
 
-        // Accept incoming connection
         int sock = accept(fd, reinterpret_cast<sockaddr*>(&client_addr), &len);
         if (sock < 1) {
             return;
@@ -34,19 +33,16 @@ namespace {
         try {
             data = new ConnectionData(sock, ptr->m_q);
         } catch (std::exception& e) {
-            std::cout << e.what() << std::endl;
-            // делаем так, чтобы продолжить ивент луп, но надо подумать над закрытием всего сервера, если есть бэд аллок, то памяти gg
             event_add(ptr->ev, nullptr);
             return;
         }
 
         data->ev = event_new(ptr->base, sock, EV_READ, on_read, data);
         if (data->ev == nullptr) {
-            std::cout << "bad allocate of event" << std::endl;
-            // возможно тоже ошибка, но будем проверять работу, вроде из одного треда это все вызывается
             event_add(ptr->ev, nullptr);
             return;
         }
+
         event_add(data->ev, nullptr);
         event_add(ptr->ev, nullptr);
     }
@@ -61,8 +57,15 @@ namespace {
             return;
         }
         auto evint = event_new(base, SIGINT, EV_SIGNAL | EV_PERSIST, sighandler, base);
+        if (evint == nullptr) {
+            return;
+        }
         event_add(evint, nullptr);
+
         auto evterm = event_new(base, SIGTERM, EV_SIGNAL | EV_PERSIST, sighandler, base);
+        if (evterm == nullptr) {
+            return;
+        }
         event_add(evterm, nullptr);
     }
 

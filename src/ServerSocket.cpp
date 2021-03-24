@@ -3,10 +3,10 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <cstring>
-#include <memory>
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <stdexcept>
 
 ServerSocket::ServerSocket(const std::string& host, uint32_t port) {
     sock_fd_ = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);

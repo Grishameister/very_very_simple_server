@@ -68,23 +68,23 @@ OK
 # Benchmark highload_server(in docker)
 
 ```
-ab -c 100 -n 10000 http://localhost:8889/httptest/wikipedia_russia.html
+ab -c 200 -n 30000 http://localhost:8889/httptest/wikipedia_russia.html
 This is ApacheBench, Version 2.3 <$Revision: 1807734 $>
 Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
 Licensed to The Apache Software Foundation, http://www.apache.org/
 
 Benchmarking localhost (be patient)
-Completed 1000 requests
-Completed 2000 requests
 Completed 3000 requests
-Completed 4000 requests
-Completed 5000 requests
 Completed 6000 requests
-Completed 7000 requests
-Completed 8000 requests
 Completed 9000 requests
-Completed 10000 requests
-Finished 10000 requests
+Completed 12000 requests
+Completed 15000 requests
+Completed 18000 requests
+Completed 21000 requests
+Completed 24000 requests
+Completed 27000 requests
+Completed 30000 requests
+Finished 30000 requests
 
 
 Server Software:        highload_server
@@ -94,56 +94,56 @@ Server Port:            8889
 Document Path:          /httptest/wikipedia_russia.html
 Document Length:        954824 bytes
 
-Concurrency Level:      100
-Time taken for tests:   9.930 seconds
-Complete requests:      10000
+Concurrency Level:      200
+Time taken for tests:   31.029 seconds
+Complete requests:      30000
 Failed requests:        0
-Total transferred:      9549170000 bytes
-HTML transferred:       9548240000 bytes
-Requests per second:    1007.04 [#/sec] (mean)
-Time per request:       99.301 [ms] (mean)
-Time per request:       0.993 [ms] (mean, across all concurrent requests)
-Transfer rate:          939101.49 [Kbytes/sec] received
+Total transferred:      28647510000 bytes
+HTML transferred:       28644720000 bytes
+Requests per second:    966.84 [#/sec] (mean)
+Time per request:       206.860 [ms] (mean)
+Time per request:       1.034 [ms] (mean, across all concurrent requests)
+Transfer rate:          901611.11 [Kbytes/sec] received
 
 Connection Times (ms)
               min  mean[+/-sd] median   max
-Connect:        0    2   0.6      2       9
-Processing:    19   98  11.5     97     236
-Waiting:        1    5  11.6      2     142
-Total:         21   99  11.5     99     237
+Connect:        0    3   1.2      3      18
+Processing:     7  203  17.8    202     313
+Waiting:        1    6  10.1      4     139
+Total:         24  207  17.6    206     316
 
 Percentage of the requests served within a certain time (ms)
-  50%     99
-  66%    100
-  75%    101
-  80%    101
-  90%    103
-  95%    106
-  98%    115
-  99%    130
- 100%    237 (longest request)
+  50%    206
+  66%    208
+  75%    211
+  80%    212
+  90%    217
+  95%    224
+  98%    246
+  99%    274
+ 100%    316 (longest request)
 
 ```
 
 # Benchmark nginx(without docker and sendfile on)
 ```
-ab -c 100 -n 10000 http://localhost:8080/httptest/wikipedia_russia.html
+ab -c 200 -n 30000 http://localhost:8080/httptest/wikipedia_russia.html
 This is ApacheBench, Version 2.3 <$Revision: 1807734 $>
 Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
 Licensed to The Apache Software Foundation, http://www.apache.org/
 
 Benchmarking localhost (be patient)
-Completed 1000 requests
-Completed 2000 requests
 Completed 3000 requests
-Completed 4000 requests
-Completed 5000 requests
 Completed 6000 requests
-Completed 7000 requests
-Completed 8000 requests
 Completed 9000 requests
-Completed 10000 requests
-Finished 10000 requests
+Completed 12000 requests
+Completed 15000 requests
+Completed 18000 requests
+Completed 21000 requests
+Completed 24000 requests
+Completed 27000 requests
+Completed 30000 requests
+Finished 30000 requests
 
 
 Server Software:        nginx/1.14.0
@@ -153,32 +153,33 @@ Server Port:            8080
 Document Path:          /httptest/wikipedia_russia.html
 Document Length:        954824 bytes
 
-Concurrency Level:      100
-Time taken for tests:   8.635 seconds
-Complete requests:      10000
+Concurrency Level:      200
+Time taken for tests:   26.338 seconds
+Complete requests:      30000
 Failed requests:        0
-Total transferred:      9550710000 bytes
-HTML transferred:       9548240000 bytes
-Requests per second:    1158.09 [#/sec] (mean)
-Time per request:       86.349 [ms] (mean)
-Time per request:       0.863 [ms] (mean, across all concurrent requests)
-Transfer rate:          1080132.62 [Kbytes/sec] received
+Total transferred:      28652130000 bytes
+HTML transferred:       28644720000 bytes
+Requests per second:    1139.03 [#/sec] (mean)
+Time per request:       175.588 [ms] (mean)
+Time per request:       0.878 [ms] (mean, across all concurrent requests)
+Transfer rate:          1062356.48 [Kbytes/sec] received
 
 Connection Times (ms)
               min  mean[+/-sd] median   max
-Connect:        1    1   0.4      1       7
-Processing:    18   85   8.3     83     141
-Waiting:        1    2   4.5      2      70
-Total:         18   86   8.4     84     144
+Connect:        0    3   0.9      3      11
+Processing:     1  172  12.3    172     338
+Waiting:        0    4   8.4      3     151
+Total:          1  175  12.4    175     340
 
 Percentage of the requests served within a certain time (ms)
-  50%     84
-  66%     86
-  75%     87
-  80%     88
-  90%    100
-  95%    105
-  98%    110
-  99%    112
- 100%    144 (longest request)
+  50%    175
+  66%    177
+  75%    180
+  80%    181
+  90%    185
+  95%    188
+  98%    193
+  99%    222
+ 100%    340 (longest request)
+
 ```
